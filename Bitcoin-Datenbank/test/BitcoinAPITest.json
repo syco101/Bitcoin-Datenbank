@@ -1,0 +1,513 @@
+{
+	"info": {
+		"_postman_id": "b1eb4f1e-e35e-47ee-a2dd-02c354482064",
+		"name": "Bitcoin API",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "42444514"
+	},
+	"item": [
+		{
+			"name": "New Request",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// 1️⃣ Prüft, ob die Antwort erfolgreich ist (Status 200 oder 201)\r",
+							"pm.test(\"Response status code is 200 or 201\", function () {\r",
+							"    pm.expect(pm.response.code).to.be.oneOf([200, 201]);\r",
+							"});\r",
+							"\r",
+							"// 2️⃣ Antwortzeit soll unter 500ms liegen\r",
+							"pm.test(\"Response time is within an acceptable range\", function () {\r",
+							"    pm.expect(pm.response.responseTime).to.be.below(500);\r",
+							"});\r",
+							"\r",
+							"// 3️⃣ Prüft, ob die Antwort die erwarteten Felder enthält\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"id\");\r",
+							"    pm.expect(jsonData).to.have.property(\"amount\");\r",
+							"    pm.expect(jsonData).to.have.property(\"priceAtPurchase\");\r",
+							"    pm.expect(jsonData).to.have.property(\"purchaseDate\");\r",
+							"});\r",
+							"\r",
+							"// 4️⃣ Prüft, ob `amount` ein nicht-negativer Wert ist\r",
+							"pm.test(\"Amount is a non-negative number\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.amount).to.be.at.least(0);\r",
+							"});\r",
+							"\r",
+							"// 5️⃣ Prüft, ob `priceAtPurchase` ein nicht-negativer Wert ist\r",
+							"pm.test(\"PriceAtPurchase is a non-negative number\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.priceAtPurchase).to.be.at.least(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				},
+				{
+					"listen": "prerequest",
+					"script": {
+						"packages": {},
+						"type": "text/javascript"
+					}
+				}
+			],
+			"protocolProfileBehavior": {
+				"protocolVersion": "auto",
+				"followAuthorizationHeader": false
+			},
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzM5OTk1ODU1LCJleHAiOjE3Mzk5OTc2NTUsImlhdCI6MTczOTk5NTg1NX0.OabTuebkW4jB425avM0nO37Q9C4y1ySPedCp0m-yySA"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 6,\n  \"amount\": 50,\n  \"priceAtPurchase\": 70,\n  \"purchaseDate\": \"2025-02-19T20:01:58.134Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings/6",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "POST (Neuen Holding hinzufügen)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Prüft, ob die Antwort erfolgreich ist (Status 200)\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Status 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"// Prüft, ob die Antwort ein JSON-Objekt ist\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Antwort ist JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"POST /api/bitcoin/holdings - Fehler 409 wenn Holding existiert\", function () {\r",
+							"    if (pm.response.code === 409) {\r",
+							"        pm.response.to.have.status(409);\r",
+							"        pm.expect(pm.response.json().message).to.include(\"existiert bereits\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"\r",
+							"// Prüft, ob die aktualisierten Werte korrekt zurückgegeben werden\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Aktualisierte Werte stimmen überein\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"id\");\r",
+							"    pm.expect(jsonData).to.have.property(\"amount\");\r",
+							"    pm.expect(jsonData).to.have.property(\"priceAtPurchase\");\r",
+							"    pm.expect(jsonData).to.have.property(\"purchaseDate\");\r",
+							"\r",
+							"    // Werte aus der Request-Body abrufen und mit Response vergleichen\r",
+							"    const requestBody = pm.request.json();\r",
+							"    pm.expect(jsonData.amount).to.equal(requestBody.amount);\r",
+							"    pm.expect(jsonData.priceAtPurchase).to.equal(requestBody.priceAtPurchase);\r",
+							"});\r",
+							"\r",
+							"// Prüft, ob die Antwort nicht null ist\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Antwort ist nicht null\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.not.be.null;\r",
+							"});\r",
+							"\r",
+							"// Prüft, ob der Fehler 400 zurückgegeben wird, wenn die ID nicht übereinstimmt\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Fehler 400 wenn ID nicht übereinstimmt\", function () {\r",
+							"    if (pm.response.code === 400) {\r",
+							"        pm.response.to.have.status(400);\r",
+							"        pm.expect(pm.response.text()).to.include(\"ID stimmt nicht überein\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Prüft, ob der Fehler 404 zurückgegeben wird, wenn das Holding nicht existiert\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Fehler 404 wenn Holding nicht gefunden\", function () {\r",
+							"    if (pm.response.code === 404) {\r",
+							"        pm.response.to.have.status(404);\r",
+							"        pm.expect(pm.response.text()).to.include(\"NotFound\");\r",
+							"    }\r",
+							"});\r",
+							"\r",
+							"// Prüft, ob der Serverfehler 500 zurückgegeben wird, falls ein Fehler auftritt\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Fehler 500 bei Serverproblemen\", function () {\r",
+							"    if (pm.response.code === 500) {\r",
+							"        pm.response.to.have.status(500);\r",
+							"        pm.expect(pm.response.text()).to.include(\"Interner Fehler\");\r",
+							"    }\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 0,\n  \"amount\": 6,\n  \"priceAtPurchase\": 666666,\n  \"purchaseDate\": \"2025-02-20T07:37:40.681Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET (Alle Holdings abrufen)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"GET /api/bitcoin/holdings - Status 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/holdings - Antwort enthält ein Array\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/holdings - Fehlerstatus 404 wenn keine Holdings vorhanden sind\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "text/plain"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET (Einzelnen Holding abrufen)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"GET /api/bitcoin/holdings/{id} - Status 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/holdings/{id} - Antwort enthält die richtigen Felder\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.have.property(\"id\");\r",
+							"    pm.expect(jsonData).to.have.property(\"amount\");\r",
+							"    pm.expect(jsonData).to.have.property(\"priceAtPurchase\");\r",
+							"    pm.expect(jsonData).to.have.property(\"purchaseDate\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/holdings/{id} - Fehlerstatus 404 wenn nicht gefunden\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "text/plain"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings/4",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "PUT (Holding aktulisieren)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Status 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Aktualisierte Werte sind korrekt\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.amount).to.be.a(\"number\");\r",
+							"    pm.expect(jsonData.priceAtPurchase).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Fehlerstatus 400 wenn ID nicht übereinstimmt\", function () {\r",
+							"    pm.response.to.have.status(400);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"PUT /api/bitcoin/holdings/{id} - Fehlerstatus 404 wenn Holding nicht existiert\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					},
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"id\": 4,\n  \"amount\": 10,\n  \"priceAtPurchase\": 10000,\n  \"purchaseDate\": \"2025-02-20T07:42:07.539Z\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings/4",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings",
+						"4"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "DELETE (Holding löschen)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"DELETE /api/bitcoin/holdings/{id} - Status 204 No Content\", function () {\r",
+							"    pm.response.to.have.status(204);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"DELETE /api/bitcoin/holdings/{id} - Fehlerstatus 404 wenn nicht gefunden\", function () {\r",
+							"    pm.response.to.have.status(404);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "DELETE",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/holdings/6",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"holdings",
+						"6"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "GET (Bitcoin Preis abrufen)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"GET /api/bitcoin/price - Status 200 OK\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/price - Antwort enthält eine Zahl\", function () {\r",
+							"    const jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.price).to.be.a(\"number\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"GET /api/bitcoin/price - Fehlerstatus 500 bei Serverfehler\", function () {\r",
+							"    pm.response.to.have.status(500);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "accept",
+						"value": "*/*"
+					},
+					{
+						"key": "Authorization",
+						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1bmlxdWVfbmFtZSI6ImFkbWluIiwibmJmIjoxNzQwMDM3MDQyLCJleHAiOjE3NDAwMzg4NDIsImlhdCI6MTc0MDAzNzA0Mn0.qUZeFKZ-QuBmGkpZ0F59j1n32ojeoLqvs5DYPjHm2QM"
+					}
+				],
+				"url": {
+					"raw": "https://localhost:5126/api/bitcoin/price",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "5126",
+					"path": [
+						"api",
+						"bitcoin",
+						"price"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
