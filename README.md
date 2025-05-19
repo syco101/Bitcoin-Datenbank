@@ -4,13 +4,15 @@ Dieses Projekt ist eine mit .NET Core entwickelte REST-API zur Verwaltung von Bi
 
 ## 📁 Projektstruktur
 
-- `Controllers/` – API-Endpunkte für Holdings, Benutzer und Authentifizierung
-- `Models/` – Datenmodelle für Benutzer, Token, Holdings
-- `DTOs/` – Objekte zur sicheren Datenübertragung (ohne sensible Felder)
-- `Services/` – Business-Logik, z. B. Token-Generierung, Userverwaltung
-- `Repositories/` – Zugriff auf Datenbank mit Entity Framework
-- `Data/` – DB-Context mit SQLite-Anbindung
-- `Program.cs / Startup.cs` – Konfiguration von Middleware, Services und Auth
+## Projektstruktur
+
+- **Controllers/** – API-Endpunkte für Holdings, Benutzer und Authentifizierung
+- **Models/** – Datenmodelle für Benutzer, Token, Holdings
+- **Services/** – Enthält Business-Logik wie Token-Generierung und Benutzerverwaltung
+- **ApplicationDbContext.cs** – SQLite-Datenbankkontext mit Entity Framework
+- **Program.cs** – Einstiegspunkt & Konfiguration
+
+Hinweis: Es wurden keine separaten DTOs oder Repository-Klassen verwendet. Die Logik wurde direkt in die Services eingebunden.
 
 ## 🔐 Funktionen
 
